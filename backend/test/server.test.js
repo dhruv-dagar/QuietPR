@@ -116,8 +116,43 @@ test("analysis returns evidence and AI report when Ollama responds", async () =>
     if (String(url).endsWith("/api/chat")) {
       const request = JSON.parse(options.body);
 
-      assert.equal(request.model, "qwen2.5-coder:3b");
-      assert.equal(request.stream, false);
+      
+assert.equal(request.model, "qwen2.5-coder:3b");
+assert.equal(request.stream, false);
+
+const prompt = request.messages.find(
+  (message) => message.role === "user"
+)?.content;
+
+assert.ok(prompt, "The model should receive a review prompt");
+
+assert.match(
+  prompt,
+  /Prioritize regressions introduced by the diff/i
+);
+
+
+assert.match(
+  prompt,
+  /If recommending a code revert, do not recommend changing tests to accommodate the reverted behavior/i
+);
+
+
+assert.match(
+  prompt,
+  /If the intended behavior is unclear, state the uncertainty/i
+);
+
+assert.match(
+  prompt,
+  /Never invent files, test results, line numbers, requirements, or code snippets/i
+);
+
+assert.match(
+  prompt,
+  /Return only the five requested report sections/i
+);
+
 
       return new Response(
         JSON.stringify({
